@@ -29,7 +29,7 @@ class CarWorld extends JPanel {
             mt.waitForID(0);
             mt.waitForID(1);
             mt.waitForID(2);
-        } catch (InterruptedException e) {
+        } catch (java.lang.InterruptedException e) {
             System.out.println("Couldn't load one of the images");
         }
 
