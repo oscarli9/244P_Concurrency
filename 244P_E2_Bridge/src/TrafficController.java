@@ -1,48 +1,40 @@
 import net.jcip.annotations.GuardedBy;
-
-import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ArrayBlockingQueue;
 
 public class TrafficController {
+    private final BlockingQueue<Thread> queue = new ArrayBlockingQueue<>(20);
     private final Object o = new Object();
-    @GuardedBy("o") private volatile boolean carOnBridge = false;
 
     public synchronized void enterLeft() {
-        if (carOnBridge) {
-            try {
-                while (carOnBridge) {
+        //synchronized (queue) {
+            queue.add(Thread.currentThread());
+            while (queue.peek() != Thread.currentThread()) {
+                try {
                     wait();
+                } catch (InterruptedException ex) {
+                    ex.printStackTrace();
                 }
-            } catch (InterruptedException ex) {
-                ex.printStackTrace();
             }
-        } else {
-            carOnBridge = true;
-        }
+        //}
     }
-
     public synchronized void enterRight() {
-        if (carOnBridge) {
+        queue.add(Thread.currentThread());
+        while (queue.peek() != Thread.currentThread()) {
             try {
-                while (carOnBridge) {
-                    wait();
-                }
+                wait();
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }
-        } else {
-            carOnBridge = true;
         }
     }
-
     public synchronized void leaveLeft() {
-        carOnBridge = false;
-        notify();
+        queue.poll();
+        notifyAll();
     }
-
     public synchronized void leaveRight() {
-        carOnBridge = false;
-        notify();
+        queue.poll();
+        notifyAll();
     }
 
 }
